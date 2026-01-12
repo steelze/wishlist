@@ -238,13 +238,3 @@ tests/
 
 * Laravel’s built-in authentication was used to provide a secure, minimal auth system without reimplementing framework primitives.
 * Wishlist functionality is modeled as a join between users and products, with database-level constraints to enforce uniqueness.
-* The React UI is intentionally minimal and serves to demonstrate API interaction rather than full product UX.
-
----
-
-If you want, next I can:
-
-* Do a **final submission checklist** (last 10-minute sanity pass), or
-* Review the repo **from a reviewer’s perspective** and call out any remaining risk.
-
-Just say which.
