@@ -28,7 +28,7 @@ A simple Laravel application that allows users to browse products and manage a p
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/steelze/wishlist.git
 cd wishlist
 ```
 
