@@ -21,7 +21,7 @@ export default function Products({ isAuthenticated, onWishlistUpdate }: Products
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [addingToWishlist, setAddingToWishlist] = useState<number | null>(null);
+    const [addingToWishlist, setAddingToWishlist] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         fetchProducts();
@@ -45,7 +45,7 @@ export default function Products({ isAuthenticated, onWishlistUpdate }: Products
             return;
         }
 
-        setAddingToWishlist(productId);
+        setAddingToWishlist((prev) => ({ ...prev, [productId]: true }));
         try {
             await axios.post(`/api/v1/wishlist/${productId}`);
             onWishlistUpdate?.();
@@ -57,7 +57,10 @@ export default function Products({ isAuthenticated, onWishlistUpdate }: Products
                 alert('Something went wrong');
             }
         } finally {
-            setAddingToWishlist(null);
+            setAddingToWishlist((prev) => {
+                const { [productId]: _, ...rest } = prev;
+                return rest;
+            });
         }
     };
 
@@ -101,10 +104,10 @@ export default function Products({ isAuthenticated, onWishlistUpdate }: Products
                                 className="w-full"
                                 variant="outline"
                                 onClick={() => addToWishlist(product.id)}
-                                disabled={addingToWishlist === product.id}
+                                disabled={addingToWishlist[product.id]}
                             >
                                 <Heart className="size-4" />
-                                {addingToWishlist === product.id ? 'Adding...' : 'Add to Wishlist'}
+                                {addingToWishlist[product.id] ? 'Adding...' : 'Add to Wishlist'}
                             </Button>
                         </CardFooter>
                     </Card>
