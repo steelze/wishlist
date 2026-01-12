@@ -1,21 +1,27 @@
 # Wishlist Application
 
-A Laravel application that allows users to browse products and manage their personal wishlists.
+A simple Laravel application that allows users to browse products and manage a personal wishlist.
+
+---
 
 ## Tech Stack
 
-- **Backend:** PHP 8.2+, Laravel 12
-- **Frontend:** React 19, Inertia.js v2, Tailwind CSS v4
-- **Database:** SQLite (default) / MySQL / PostgreSQL
-- **Authentication:** Laravel Fortify, Laravel Sanctum
-- **Testing:** Pest v4
+* **Backend:** PHP 8.2+, Laravel 12
+* **Frontend:** React, Inertia.js
+* **Database:** SQLite (default) / MySQL / PostgreSQL
+* **Authentication:** Laravel Fortify, Laravel Sanctum (session-based)
+* **Testing:** Pest
+
+---
 
 ## Requirements
 
-- PHP 8.2 or higher
-- Composer
-- Node.js 18+ and npm
-- SQLite (or MySQL/PostgreSQL)
+* PHP 8.2+
+* Composer
+* Node.js 18+
+* SQLite (or MySQL/PostgreSQL)
+
+---
 
 ## Setup Instructions
 
@@ -33,7 +39,7 @@ composer install
 npm install
 ```
 
-### 3. Environment configuration
+### 3. Environment setup
 
 ```bash
 cp .env.example .env
@@ -42,13 +48,13 @@ php artisan key:generate
 
 ### 4. Database setup
 
-Create the SQLite database file (if using SQLite):
+For SQLite:
 
 ```bash
 touch database/database.sqlite
 ```
 
-Run migrations and seed the database:
+Run migrations and seed data:
 
 ```bash
 php artisan migrate
@@ -61,246 +67,115 @@ php artisan db:seed
 npm run build
 ```
 
-### 6. Start the development server
-
-```bash
-composer run dev
-```
-
-Or manually:
+### 6. Run the application
 
 ```bash
 php artisan serve
 ```
 
-The application will be available at `http://localhost:8000`
+The app will be available at `http://localhost:8000`.
 
-## Database Migrations
+---
 
-The application includes the following key migrations:
+## Database Overview
 
-| Migration | Description |
-|-----------|-------------|
-| `create_users_table` | User accounts with authentication fields |
-| `create_products_table` | Products with name, price, and description |
-| `create_wishlists_table` | Pivot table linking users to their wishlisted products |
-| `create_personal_access_tokens_table` | API tokens for Sanctum authentication |
+### products
 
-### Database Schema
+* `id`
+* `name`
+* `price` (decimal)
+* `description`
+* timestamps
 
-**products**
-| Column | Type | Description |
-|--------|------|-------------|
-| id | integer | Primary key |
-| name | string | Product name |
-| price | decimal(10,2) | Product price |
-| description | text | Product description |
-| created_at | datetime | Timestamp |
-| updated_at | datetime | Timestamp |
+### wishlists
 
-**wishlists**
-| Column | Type | Description |
-|--------|------|-------------|
-| id | integer | Primary key |
-| user_id | integer | Foreign key to users |
-| product_id | integer | Foreign key to products |
-| created_at | datetime | Timestamp |
-| updated_at | datetime | Timestamp |
+* `id`
+* `user_id`
+* `product_id`
+* timestamps
+* Unique constraint on `(user_id, product_id)`
 
-- Unique constraint on `(user_id, product_id)` to prevent duplicates
-- Cascade delete when user or product is deleted
+The `wishlists` table acts as a join table linking users to products they have wishlisted.
 
-## API Documentation
+---
 
-All API endpoints are prefixed with `/api/v1`. Authentication is handled via Laravel Sanctum (cookie-based for SPA).
+## API Overview
 
-### Response Format
+All API endpoints are prefixed with `/api/v1`.
 
-All responses follow a consistent structure:
+Authentication for protected endpoints is handled using **Laravel Sanctum (session-based)**.
 
-**Success Response:**
-```json
-{
-  "status": "success",
-  "message": "Successful",
-  "data": [],
-  "meta": []
-}
-```
+Responses are returned as JSON with a consistent envelope containing a status indicator and the primary data payload.
 
-**Error Response:**
-```json
-{
-  "status": "error",
-  "message": "Error message",
-  "errors": [],
-  "meta": []
-}
-```
+---
 
-### Endpoints
+## API Endpoints
 
-#### Products
+### Products
 
-##### List All Products
+#### List Products
 
 ```
 GET /api/v1/products
 ```
 
-Returns all products sorted by newest first.
-
-**Authentication:** Not required
-
-**Response:** `200 OK`
-```json
-{
-  "status": "success",
-  "message": "Successful",
-  "data": [
-    {
-      "id": 1,
-      "name": "Product Name",
-      "price": "29.99",
-      "description": "Product description",
-      "created_at": "2024-01-11T14:21:23.000000Z",
-      "updated_at": "2024-01-11T14:21:23.000000Z"
-    }
-  ],
-  "meta": []
-}
-```
+* Returns all available products (newest first)
+* Authentication: **Not required**
 
 ---
 
-#### Wishlist
+### Wishlist
 
-All wishlist endpoints require authentication.
+*All wishlist endpoints require authentication.*
 
-##### Get User's Wishlist
+#### Get User Wishlist
 
 ```
 GET /api/v1/wishlist
 ```
 
-Returns all products in the authenticated user's wishlist.
-
-**Authentication:** Required (Sanctum)
-
-**Response:** `200 OK`
-```json
-{
-  "status": "success",
-  "message": "Successful",
-  "data": [
-    {
-      "id": 1,
-      "name": "Product Name",
-      "price": "29.99",
-      "description": "Product description",
-      "created_at": "2024-01-11T14:21:23.000000Z",
-      "updated_at": "2024-01-11T14:21:23.000000Z"
-    }
-  ],
-  "meta": []
-}
-```
-
-**Error Response:** `401 Unauthorized` (if not authenticated)
+* Returns products in the authenticated user’s wishlist
+* Authentication: **Required**
 
 ---
 
-##### Add Product to Wishlist
+#### Add Product to Wishlist
 
 ```
 POST /api/v1/wishlist/{product_id}
 ```
 
-Adds a product to the authenticated user's wishlist.
+* Adds a product to the authenticated user’s wishlist
 
-**Authentication:** Required (Sanctum)
+Possible responses:
 
-**Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| product_id | integer | The ID of the product to add |
-
-**Response:** `201 Created`
-```json
-{
-  "status": "success",
-  "message": "Product added to wishlist",
-  "data": [],
-  "meta": []
-}
-```
-
-**Error Responses:**
-- `401 Unauthorized` - User not authenticated
-- `404 Not Found` - Product does not exist
-- `409 Conflict` - Product already in wishlist
-
-```json
-{
-  "status": "error",
-  "message": "Product already in wishlist",
-  "errors": [],
-  "meta": []
-}
-```
+* `201 Created`
+* `401 Unauthorized`
+* `404 Not Found`
+* `409 Conflict` (already wishlisted)
 
 ---
 
-##### Remove Product from Wishlist
+#### Remove Product from Wishlist
 
 ```
 DELETE /api/v1/wishlist/{product_id}
 ```
 
-Removes a product from the authenticated user's wishlist.
+* Removes a product from the authenticated user’s wishlist
+* Operation is idempotent
 
-**Authentication:** Required (Sanctum)
+Possible responses:
 
-**Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| product_id | integer | The ID of the product to remove |
-
-**Response:** `200 OK`
-```json
-{
-  "status": "success",
-  "message": "Product removed from wishlist",
-  "data": [],
-  "meta": []
-}
-```
-
-**Error Responses:**
-- `401 Unauthorized` - User not authenticated
-- `404 Not Found` - Product does not exist
+* `200 OK`
+* `401 Unauthorized`
+* `404 Not Found`
 
 ---
 
-### Authentication Endpoints
+## Testing
 
-The application uses Laravel Fortify for authentication:
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/login` | Login page |
-| POST | `/login` | Authenticate user |
-| POST | `/logout` | Logout user |
-| GET | `/register` | Registration page |
-| POST | `/register` | Create new user |
-| GET | `/forgot-password` | Password reset request page |
-| POST | `/forgot-password` | Send password reset email |
-| GET | `/reset-password/{token}` | Password reset page |
-| POST | `/reset-password` | Reset password |
-
-## Testing Instructions
-
-The application uses Pest for testing.
+The project uses **Pest** for feature testing.
 
 ### Run all tests
 
@@ -308,82 +183,68 @@ The application uses Pest for testing.
 php artisan test
 ```
 
-Or with compact output:
+### Run specific tests
 
 ```bash
-php artisan test --compact
-```
-
-### Run specific test files
-
-```bash
-# API tests
 php artisan test tests/Feature/Api/V1/ProductControllerTest.php
 php artisan test tests/Feature/Api/V1/WishlistControllerTest.php
-
-# Authentication tests
-php artisan test tests/Feature/Auth/
 ```
 
-### Run tests with filter
+### Covered scenarios
 
-```bash
-php artisan test --filter="adds a product to the wishlist"
-```
+* Product listing and empty state
+* Wishlist add / list / remove flows
+* Duplicate wishlist prevention
+* Authentication enforcement
+* User data isolation
 
-### Test Coverage
-
-The API tests cover:
-
-**ProductController:**
-- Listing all products
-- Empty product list handling
-
-**WishlistController:**
-- Adding products to wishlist
-- Preventing duplicate wishlist entries (409 Conflict)
-- Listing user's wishlist
-- Removing products from wishlist
-- Authentication requirements for all endpoints
-- User isolation (users can only see their own wishlist)
+---
 
 ## Project Structure
 
 ```
-├── app/
-│   ├── Helpers/
-│   │   └── RespondWith.php          # API response helper
-│   ├── Http/Controllers/
-│   │   └── Api/V1/
-│   │       ├── ProductController.php
-│   │       └── WishlistController.php
-│   └── Models/
-│       ├── Product.php
-│       ├── User.php
-│       └── Wishlist.php
-├── database/
-│   ├── factories/
-│   │   └── ProductFactory.php
-│   ├── migrations/
-│   │   ├── create_products_table.php
-│   │   └── create_wishlists_table.php
-│   └── seeders/
-│       └── ProductSeeder.php
-├── resources/js/
-│   ├── components/
-│   │   ├── product.tsx              # Product listing component
-│   │   └── wishlist.tsx             # Wishlist component
-│   └── pages/
-│       └── welcome.tsx              # Main page
-├── routes/
-│   ├── api.php                      # API routes
-│   └── web.php                      # Web routes
-└── tests/
-    └── Feature/Api/V1/
-        ├── ProductControllerTest.php
-        └── WishlistControllerTest.php
+app/
+ ├── Http/Controllers/Api/V1
+ │   ├── ProductController.php
+ │   └── WishlistController.php
+ ├── Models
+ │   ├── Product.php
+ │   ├── User.php
+ │   └── Wishlist.php
+
+database/
+ ├── factories
+ ├── migrations
+ └── seeders
+
+resources/js/
+ ├── components
+ │   ├── Products.tsx
+ │   └── Wishlist.tsx
+ └── pages
+     └── Welcome.tsx
+
+routes/
+ ├── api.php
+ └── web.php
+
+tests/
+ └── Feature/Api/V1
 ```
 
-## License
+---
 
-This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Notes on Design Choices
+
+* Laravel’s built-in authentication was used to provide a secure, minimal auth system without reimplementing framework primitives.
+* Wishlist functionality is modeled as a join between users and products, with database-level constraints to enforce uniqueness.
+* The React UI is intentionally minimal and serves to demonstrate API interaction rather than full product UX.
+
+---
+
+If you want, next I can:
+
+* Do a **final submission checklist** (last 10-minute sanity pass), or
+* Review the repo **from a reviewer’s perspective** and call out any remaining risk.
+
+Just say which.
